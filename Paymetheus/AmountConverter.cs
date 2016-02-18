@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2016 The btcsuite developers
+// Copyright (c) 2016 The Decred developers
 // Licensed under the ISC license.  See LICENSE file in the project root for full license information.
 
-using Paymetheus.Bitcoin;
+using Paymetheus.Decred;
 using System;
 using System.Globalization;
 using System.Windows.Data;
@@ -26,7 +27,7 @@ namespace Paymetheus
             if (double.IsNaN(fpValue) || double.IsInfinity(fpValue))
                 return null;
 
-            return Denomination.Bitcoin.AmountFromDouble(fpValue);
+            return Denomination.Decred.AmountFromDouble(fpValue);
         }
     }
 }

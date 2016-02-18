@@ -1,4 +1,5 @@
 ﻿// Copyright (c) 2016 The btcsuite developers
+// Copyright (c) 2016 The Decred developers
 // Licensed under the ISC license.  See LICENSE file in the project root for full license information.
 
 using System;
@@ -8,7 +9,7 @@ namespace Paymetheus.Rpc
 {
     public class ConsensusServerRpcOptions
     {
-        public const string ApplicationName = "btcd";
+        public const string ApplicationName = "dcrd";
 
         public ConsensusServerRpcOptions(string networkAddr, string rpcUser, string rpcPass, string certPath)
         {
