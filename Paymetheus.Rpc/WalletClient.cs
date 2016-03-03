@@ -86,18 +86,18 @@ namespace Paymetheus.Rpc
             return resp.Exists;
         }
 
-        public async Task StartBtcdRpc(ConsensusServerRpcOptions options)
+        public async Task StartConcensusRpc(ConsensusServerRpcOptions options)
         {
             var certificateTask = ReadFileAsync(options.CertificatePath);
             var client = WalletLoaderService.NewClient(_channel);
-            var request = new StartBtcdRpcRequest
+            var request = new StartConcensusRpcRequest
             {
                 NetworkAddress = options.NetworkAddress,
                 Username = options.RpcUser,
                 Password = ByteString.CopyFromUtf8(options.RpcPassword),
                 Certificate = ByteString.CopyFrom(await certificateTask),
             };
-            await client.StartBtcdRpcAsync(request, cancellationToken: _tokenSource.Token);
+            await client.StartConcensusRpcAsync(request, cancellationToken: _tokenSource.Token);
         }
 
         private async Task<byte[]> ReadFileAsync(string filePath)
