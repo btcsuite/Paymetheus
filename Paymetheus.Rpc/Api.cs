@@ -214,8 +214,8 @@ namespace Walletrpc {
             new pbr::GeneratedCodeInfo(typeof(global::Walletrpc.CloseWalletResponse), global::Walletrpc.CloseWalletResponse.Parser, null, null, null, null),
             new pbr::GeneratedCodeInfo(typeof(global::Walletrpc.WalletExistsRequest), global::Walletrpc.WalletExistsRequest.Parser, null, null, null, null),
             new pbr::GeneratedCodeInfo(typeof(global::Walletrpc.WalletExistsResponse), global::Walletrpc.WalletExistsResponse.Parser, new[]{ "Exists" }, null, null, null),
-            new pbr::GeneratedCodeInfo(typeof(global::Walletrpc.StartBtcdRpcRequest), global::Walletrpc.StartBtcdRpcRequest.Parser, new[]{ "NetworkAddress", "Username", "Password", "Certificate" }, null, null, null),
-            new pbr::GeneratedCodeInfo(typeof(global::Walletrpc.StartBtcdRpcResponse), global::Walletrpc.StartBtcdRpcResponse.Parser, null, null, null, null)
+            new pbr::GeneratedCodeInfo(typeof(global::Walletrpc.StartConcensusRpcRequest), global::Walletrpc.StartConcensusRpcRequest.Parser, new[]{ "NetworkAddress", "Username", "Password", "Certificate" }, null, null, null),
+            new pbr::GeneratedCodeInfo(typeof(global::Walletrpc.StartConcensusRpcResponse), global::Walletrpc.StartConcensusRpcResponse.Parser, null, null, null, null)
           }));
     }
     #endregion
@@ -7042,9 +7042,9 @@ namespace Walletrpc {
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-  public sealed partial class StartBtcdRpcRequest : pb::IMessage<StartBtcdRpcRequest> {
-    private static readonly pb::MessageParser<StartBtcdRpcRequest> _parser = new pb::MessageParser<StartBtcdRpcRequest>(() => new StartBtcdRpcRequest());
-    public static pb::MessageParser<StartBtcdRpcRequest> Parser { get { return _parser; } }
+  public sealed partial class StartConcensusRpcRequest : pb::IMessage<StartConcensusRpcRequest> {
+    private static readonly pb::MessageParser<StartConcensusRpcRequest> _parser = new pb::MessageParser<StartConcensusRpcRequest>(() => new StartConcensusRpcRequest());
+    public static pb::MessageParser<StartConcensusRpcRequest> Parser { get { return _parser; } }
 
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Walletrpc.ApiReflection.Descriptor.MessageTypes[47]; }
@@ -7054,21 +7054,21 @@ namespace Walletrpc {
       get { return Descriptor; }
     }
 
-    public StartBtcdRpcRequest() {
+    public StartConcensusRpcRequest() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
-    public StartBtcdRpcRequest(StartBtcdRpcRequest other) : this() {
+    public StartConcensusRpcRequest(StartConcensusRpcRequest other) : this() {
       networkAddress_ = other.networkAddress_;
       username_ = other.username_;
       password_ = other.password_;
       certificate_ = other.certificate_;
     }
 
-    public StartBtcdRpcRequest Clone() {
-      return new StartBtcdRpcRequest(this);
+    public StartConcensusRpcRequest Clone() {
+      return new StartConcensusRpcRequest(this);
     }
 
     /// <summary>Field number for the "network_address" field.</summary>
@@ -7112,10 +7112,10 @@ namespace Walletrpc {
     }
 
     public override bool Equals(object other) {
-      return Equals(other as StartBtcdRpcRequest);
+      return Equals(other as StartConcensusRpcRequest);
     }
 
-    public bool Equals(StartBtcdRpcRequest other) {
+    public bool Equals(StartConcensusRpcRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -7178,7 +7178,7 @@ namespace Walletrpc {
       return size;
     }
 
-    public void MergeFrom(StartBtcdRpcRequest other) {
+    public void MergeFrom(StartConcensusRpcRequest other) {
       if (other == null) {
         return;
       }
@@ -7226,9 +7226,9 @@ namespace Walletrpc {
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-  public sealed partial class StartBtcdRpcResponse : pb::IMessage<StartBtcdRpcResponse> {
-    private static readonly pb::MessageParser<StartBtcdRpcResponse> _parser = new pb::MessageParser<StartBtcdRpcResponse>(() => new StartBtcdRpcResponse());
-    public static pb::MessageParser<StartBtcdRpcResponse> Parser { get { return _parser; } }
+  public sealed partial class StartConcensusRpcResponse : pb::IMessage<StartConcensusRpcResponse> {
+    private static readonly pb::MessageParser<StartConcensusRpcResponse> _parser = new pb::MessageParser<StartConcensusRpcResponse>(() => new StartConcensusRpcResponse());
+    public static pb::MessageParser<StartConcensusRpcResponse> Parser { get { return _parser; } }
 
     public static pbr::MessageDescriptor Descriptor {
       get { return global::Walletrpc.ApiReflection.Descriptor.MessageTypes[48]; }
@@ -7238,24 +7238,24 @@ namespace Walletrpc {
       get { return Descriptor; }
     }
 
-    public StartBtcdRpcResponse() {
+    public StartConcensusRpcResponse() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
-    public StartBtcdRpcResponse(StartBtcdRpcResponse other) : this() {
+    public StartConcensusRpcResponse(StartConcensusRpcResponse other) : this() {
     }
 
-    public StartBtcdRpcResponse Clone() {
-      return new StartBtcdRpcResponse(this);
+    public StartConcensusRpcResponse Clone() {
+      return new StartConcensusRpcResponse(this);
     }
 
     public override bool Equals(object other) {
-      return Equals(other as StartBtcdRpcResponse);
+      return Equals(other as StartConcensusRpcResponse);
     }
 
-    public bool Equals(StartBtcdRpcResponse other) {
+    public bool Equals(StartConcensusRpcResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -7282,7 +7282,7 @@ namespace Walletrpc {
       return size;
     }
 
-    public void MergeFrom(StartBtcdRpcResponse other) {
+    public void MergeFrom(StartConcensusRpcResponse other) {
       if (other == null) {
         return;
       }
