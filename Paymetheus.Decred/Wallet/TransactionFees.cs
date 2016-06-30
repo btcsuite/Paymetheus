@@ -72,7 +72,7 @@ namespace Paymetheus.Decred.Wallet
 
             var totalNonChangeOutput = tx.Outputs.Sum(o => o.Amount);
             var changeAmount = totalInput - totalNonChangeOutput - feeEstimate;
-            var changeOutput = new Transaction.Output(changeAmount, Transaction.SupportedVersion, changeScript.Script);
+            var changeOutput = new Transaction.Output(changeAmount, Transaction.Output.LatestPkScriptVersion, changeScript.Script);
 
             // Change should not be created if the change output itself would be considered dust.
             if (TransactionRules.IsDust(changeOutput, feePerKb))
