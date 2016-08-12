@@ -72,6 +72,7 @@
     <Compile Include="Transaction.cs" />
     <Compile Include="Util\DateTimeOffsetExtras.cs" />
     <Compile Include="Util\LittleEndian.cs" />
+    <Compile Include="Util\TupleValue.cs" />
     <Compile Include="Util\ValueArray.cs" />
     <Compile Include="Wallet\Account.cs" />
     <Compile Include="Wallet\AccountProperties.cs" />

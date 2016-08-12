@@ -18,30 +18,19 @@ namespace Paymetheus
                 throw new ArgumentNullException(nameof(properties));
 
             Account = account;
-            AccountName = properties.AccountName;
-            Balance = properties.TotalBalance;
+            _accountProperties = properties;
         }
+
+        private readonly AccountProperties _accountProperties;
 
         public Account Account { get; }
-        private string _accountName;
-        public string AccountName
-        {
-            get { return _accountName; }
-            set { if (_accountName != value) { _accountName = value; RaisePropertyChanged(); } }
-        }
+        public string AccountName => _accountProperties.AccountName;
+        public string BalanceString => Denomination.Bitcoin.FormatAmount(_accountProperties.TotalBalance);
 
-        private Amount _balance;
-        public Amount Balance
+        public void NotifyPropertiesChanged()
         {
-            get { return _balance; }
-            set
-            {
-                _balance = value;
-                RaisePropertyChanged();
-                RaisePropertyChanged(nameof(BalanceString));
-            }
+            RaisePropertyChanged(nameof(AccountName));
+            RaisePropertyChanged(nameof(BalanceString));
         }
-
-        public string BalanceString => Denomination.Bitcoin.FormatAmount(Balance);
     }
 }

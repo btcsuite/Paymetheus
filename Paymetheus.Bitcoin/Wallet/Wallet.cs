@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2016 The btcsuite developers
 // Licensed under the ISC license.  See LICENSE file in the project root for full license information.
 
+using Paymetheus.Bitcoin.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,20 +28,26 @@ namespace Paymetheus.Bitcoin.Wallet
         /// </summary>
         public const int MinRecentTransactions = 10;
 
-        public Wallet(BlockChainIdentity activeChain, TransactionSet txSet, Dictionary<Account, AccountProperties> accounts, BlockIdentity chainTip)
+        private const uint ImportedAccountNumber = 2147483647; // 2**31 - 1
+
+        public Wallet(BlockChainIdentity activeChain, TransactionSet txSet, List<AccountProperties> bip0032Accounts,
+            AccountProperties importedAccount, BlockIdentity chainTip)
         {
             if (activeChain == null)
                 throw new ArgumentNullException(nameof(activeChain));
-            if (accounts == null)
-                throw new ArgumentNullException(nameof(accounts));
+            if (bip0032Accounts == null)
+                throw new ArgumentNullException(nameof(bip0032Accounts));
+            if (importedAccount == null)
+                throw new ArgumentNullException(nameof(importedAccount));
             if (chainTip == null)
                 throw new ArgumentNullException(nameof(chainTip));
 
-            var totalBalance = accounts.Aggregate((Amount)0, (acc, kvp) => acc + kvp.Value.TotalBalance);
-
             _transactionCount = txSet.MinedTransactions.Aggregate(0, (acc, b) => acc + b.Transactions.Count) +
                 txSet.UnminedTransactions.Count;
-            _accounts = accounts;
+            _bip0032Accounts = bip0032Accounts;
+            _importedAccount = importedAccount;
+
+            var totalBalance = EnumerateAccounts().Aggregate((Amount)0, (acc, a) => acc + a.Item2.TotalBalance);
 
             ActiveChain = activeChain;
             RecentTransactions = txSet;
@@ -49,7 +56,8 @@ namespace Paymetheus.Bitcoin.Wallet
         }
 
         private int _transactionCount;
-        private readonly Dictionary<Account, AccountProperties> _accounts;
+        private readonly List<AccountProperties> _bip0032Accounts;
+        private readonly AccountProperties _importedAccount;
 
         public BlockChainIdentity ActiveChain { get; }
         public TransactionSet RecentTransactions { get; }
@@ -64,7 +72,7 @@ namespace Paymetheus.Bitcoin.Wallet
             {
                 TotalBalance -= input.Amount;
 
-                var accountProperties = _accounts[input.PreviousAccount];
+                var accountProperties = LookupAccountProperties(input.PreviousAccount);
                 accountProperties.TotalBalance -= input.Amount;
                 if (isCoinbase)
                     accountProperties.ImmatureCoinbaseReward -= input.Amount;
@@ -75,7 +83,7 @@ namespace Paymetheus.Bitcoin.Wallet
             {
                 TotalBalance += output.Amount;
 
-                var accountProperties = _accounts[output.Account];
+                var accountProperties = LookupAccountProperties(output.Account);
                 accountProperties.TotalBalance += output.Amount;
                 if (isCoinbase)
                     accountProperties.ImmatureCoinbaseReward += output.Amount;
@@ -93,7 +101,7 @@ namespace Paymetheus.Bitcoin.Wallet
             {
                 TotalBalance += input.Amount;
 
-                var accountProperties = _accounts[input.PreviousAccount];
+                var accountProperties = LookupAccountProperties(input.PreviousAccount);
                 accountProperties.TotalBalance += input.Amount;
                 if (isCoinbase)
                     accountProperties.ImmatureCoinbaseReward += input.Amount;
@@ -104,7 +112,7 @@ namespace Paymetheus.Bitcoin.Wallet
             {
                 TotalBalance -= output.Amount;
 
-                var accountProperties = _accounts[output.Account];
+                var accountProperties = LookupAccountProperties(output.Account);
                 accountProperties.TotalBalance -= output.Amount;
                 if (isCoinbase)
                     accountProperties.ImmatureCoinbaseReward -= output.Amount;
@@ -239,10 +247,27 @@ namespace Paymetheus.Bitcoin.Wallet
         public void UpdateAccountProperties(Account account, string name, uint externalKeyCount, uint internalKeyCount, uint importedKeyCount)
         {
             AccountProperties props;
-            if (!_accounts.TryGetValue(account, out props))
+
+            if (account.AccountNumber == ImportedAccountNumber)
             {
-                props = new AccountProperties();
-                _accounts[account] = props;
+                props = _importedAccount;
+            }
+            else
+            {
+                var accountNumber = checked((int)account.AccountNumber);
+                if (accountNumber < _bip0032Accounts.Count)
+                {
+                    props = _bip0032Accounts[accountNumber];
+                }
+                else if (accountNumber == _bip0032Accounts.Count)
+                {
+                    props = new AccountProperties();
+                    _bip0032Accounts.Add(props);
+                }
+                else
+                {
+                    throw new Exception($"Account {accountNumber} is not the next BIP0032 account.");
+                }
             }
 
             props.AccountName = name;
@@ -262,7 +287,7 @@ namespace Paymetheus.Bitcoin.Wallet
 
         public Amount CalculateSpendableBalance(Account account, int minConf)
         {
-            var balance = _accounts[account].ZeroConfSpendableBalance;
+            var balance = LookupAccountProperties(account).ZeroConfSpendableBalance;
 
             if (minConf == 0)
             {
@@ -304,7 +329,7 @@ namespace Paymetheus.Bitcoin.Wallet
                 if (controlledOutput.Change)
                     return "Change";
                 else
-                    return _accounts[controlledOutput.Account].AccountName;
+                    return LookupAccountProperties(controlledOutput.Account).AccountName;
             }
             else
             {
@@ -317,10 +342,23 @@ namespace Paymetheus.Bitcoin.Wallet
             }
         }
 
-        public AccountProperties LookupAccountProperties(Account account) => _accounts[account];
+        public AccountProperties LookupAccountProperties(Account account)
+        {
+            if (account.AccountNumber == ImportedAccountNumber)
+            {
+                return _importedAccount;
+            }
 
-        public string AccountName(Account account) => _accounts[account].AccountName;
+            var accountIndex = checked((int)account.AccountNumber);
+            return _bip0032Accounts[accountIndex];
+        }
 
-        public IEnumerable<KeyValuePair<Account, AccountProperties>> EnumrateAccounts() => _accounts;
+        public string AccountName(Account account) => LookupAccountProperties(account).AccountName;
+
+        public IEnumerable<TupleValue<Account, AccountProperties>> EnumerateAccounts()
+        {
+            return _bip0032Accounts.Select((p, i) => TupleValue.Create(new Account((uint)i), p))
+                .Concat(new[] { TupleValue.Create(new Account(ImportedAccountNumber), _importedAccount) });
+        }
     }
 }
