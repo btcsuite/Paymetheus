@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2016 The btcsuite developers
+// Copyright (c) 2016 The Decred developers
 // Licensed under the ISC license.  See LICENSE file in the project root for full license information.
 
 using Google.Protobuf;
 using Grpc.Core;
-using Paymetheus.Bitcoin;
-using Paymetheus.Bitcoin.Script;
-using Paymetheus.Bitcoin.Wallet;
+using Paymetheus.Decred;
+using Paymetheus.Decred.Wallet;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,7 +20,7 @@ namespace Paymetheus.Rpc
 {
     public sealed class WalletClient : IDisposable
     {
-        private static readonly SemanticVersion RequiredRpcServerVersion = new SemanticVersion(2, 0, 0);
+        private static readonly SemanticVersion RequiredRpcServerVersion = new SemanticVersion(2, 1, 0);
 
         public static void Initialize()
         {
@@ -280,7 +280,7 @@ namespace Paymetheus.Rpc
             return Tuple.Create(outputs, total);
         }
 
-        public async Task<Tuple<List<UnspentOutput>, Amount, OutputScript>> FundTransactionAsync(
+        public async Task<Tuple<List<UnspentOutput>, Amount>> FundTransactionAsync(
             Account account, Amount targetAmount, int requiredConfirmations)
         {
             var client = WalletService.NewClient(_channel);
@@ -290,17 +290,12 @@ namespace Paymetheus.Rpc
                 TargetAmount = targetAmount,
                 RequiredConfirmations = requiredConfirmations,
                 IncludeImmatureCoinbases = false,
-                IncludeChangeScript = true,
+                IncludeChangeScript = false,
             };
             var response = await client.FundTransactionAsync(request, cancellationToken: _tokenSource.Token);
             var outputs = response.SelectedOutputs.Select(MarshalUnspentOutput).ToList();
             var total = (Amount)response.TotalAmount;
-            var changeScript = (OutputScript)null;
-            if (response.ChangePkScript?.Length != 0)
-            {
-                changeScript = OutputScript.ParseScript(response.ChangePkScript.ToByteArray());
-            }
-            return Tuple.Create(outputs, total, changeScript);
+            return Tuple.Create(outputs, total);
         }
 
         public async Task<Tuple<Transaction, bool>> SignTransactionAsync(string passphrase, Transaction tx)
@@ -346,19 +341,18 @@ namespace Paymetheus.Rpc
                 notificationsTask = notifications.ListenAndBuffer();
 
                 var networkTask = NetworkAsync();
-
-                // Concurrently download transaction history and account properties.
-                var txSetTask = GetTransactionsAsync(Wallet.MinRecentTransactions, Wallet.NumRecentBlocks);
                 var accountsTask = AccountsAsync();
 
                 var networkResp = await networkTask;
                 var activeBlockChain = BlockChainIdentity.FromNetworkBits(networkResp.ActiveNetwork);
 
+                var txSetTask = GetTransactionsAsync(Wallet.MinRecentTransactions, Wallet.NumRecentBlocks(activeBlockChain));
+
                 var txSet = await txSetTask;
                 var rpcAccounts = await accountsTask;
 
                 var lastAccountBlockHeight = rpcAccounts.CurrentBlockHeight;
-                var lastAccountBlockHash = new Sha256Hash(rpcAccounts.CurrentBlockHash.ToByteArray());
+                var lastAccountBlockHash = new Blake256Hash(rpcAccounts.CurrentBlockHash.ToByteArray());
                 var lastTxBlock = txSet.MinedTransactions.LastOrDefault();
                 if (lastTxBlock != null)
                 {
@@ -423,8 +417,22 @@ namespace Paymetheus.Rpc
                         InternalKeyCount = a.InternalKeyCount,
                         ImportedKeyCount = a.ImportedKeyCount,
                     });
+                Func<AccountsResponse.Types.Account, AccountProperties> createProperties = a => new AccountProperties
+                {
+                    AccountName = a.AccountName,
+                    TotalBalance = a.TotalBalance,
+                    // TODO: uncomment when added to protospec and implemented by wallet.
+                    //ImmatureCoinbaseReward = a.ImmatureBalance,
+                    ExternalKeyCount = a.ExternalKeyCount,
+                    InternalKeyCount = a.InternalKeyCount,
+                    ImportedKeyCount = a.ImportedKeyCount,
+                };
+                // This assumes that all but the last account listed in the RPC response are
+                // BIP0032 accounts, with the same account number as their List index.
+                var bip0032Accounts = rpcAccounts.Accounts.Take(rpcAccounts.Accounts.Count - 1).Select(createProperties).ToList();
+                var importedAccount = createProperties(rpcAccounts.Accounts.Last());
                 var chainTip = new BlockIdentity(lastAccountBlockHash, lastAccountBlockHeight);
-                var wallet = new Wallet(activeBlockChain, txSet, accounts, chainTip);
+                var wallet = new Wallet(activeBlockChain, txSet, bip0032Accounts, importedAccount, chainTip);
                 wallet.ChangesProcessed += walletEventHandler;
 
                 var syncTask = Task.Run(async () =>

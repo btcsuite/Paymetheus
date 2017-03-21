@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2016 The btcsuite developers
+// Copyright (c) 2016 The Decred developers
 // Licensed under the ISC license.  See LICENSE file in the project root for full license information.
 
+using Paymetheus.Helpers;
 using Paymetheus.Rpc;
 using System;
 using System.IO;
@@ -14,9 +16,18 @@ namespace Paymetheus
     /// </summary>
     public partial class ConsensusServerConnectionOptionsView : UserControl
     {
+
         public ConsensusServerConnectionOptionsView()
         {
             InitializeComponent();
+            Watermark.Set(Location, "network address");
+            Watermark.Set(Username, "username");
+            TextboxConsensusServerRpcPassword.GotFocus += TextboxConsensusServerRpcPassword_GotFocus;
+        }
+
+        private void TextboxConsensusServerRpcPassword_GotFocus(object sender, RoutedEventArgs e)
+        {
+            TextboxConsensusServerRpcPassword.Clear();
         }
 
         private void TextBoxConsensusServerRpcPassword_PasswordChanged(object sender, RoutedEventArgs e)
@@ -47,6 +58,15 @@ namespace Paymetheus
             {
                 ((dynamic)DataContext).ConsensusServerCertificateFile = fileDialog.FileName;
             }
+        }
+
+        private void TextboxConsensusServerRpcPassword_Loaded(object sender, RoutedEventArgs e)
+        {
+            var dataContext = DataContext;
+            if (dataContext == null)
+                return;
+
+            ((PasswordBox)sender).Password = ((dynamic)dataContext).ConsensusServerRpcPassword;
         }
     }
 }

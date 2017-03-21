@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2016 The btcsuite developers
+// Copyright (c) 2016 The Decred developers
 // Licensed under the ISC license.  See LICENSE file in the project root for full license information.
 
-using Paymetheus.Bitcoin;
+using Paymetheus.Decred;
 using System;
 
 namespace Paymetheus
@@ -23,8 +24,8 @@ namespace Paymetheus
             {
                 switch (arg)
                 {
-                    case "-testnet3":
-                        intendedNetwork = BlockChainIdentity.TestNet3;
+                    case "-testnet":
+                        intendedNetwork = BlockChainIdentity.TestNet;
                         break;
                     default:
                         throw new Exception($"Unrecognized argument `{arg}`");

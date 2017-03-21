@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2016 The btcsuite developers
+// Copyright (c) 2016 The Decred developers
 // Licensed under the ISC license.  See LICENSE file in the project root for full license information.
 
-using Paymetheus.Bitcoin;
+using Paymetheus.Decred;
 using System;
 using System.Diagnostics;
 
@@ -17,13 +18,7 @@ namespace Paymetheus.Rpc
                 throw new ArgumentNullException(nameof(appDataDirectory));
 
             var networkFlag = "";
-            if (intendedNetwork == BlockChainIdentity.TestNet3)
-            {
-                // While the actual name of the network is "testnet3", the wallet uses
-                // the --testnet flag for this network.
-                networkFlag = "--testnet";
-            }
-            else if (intendedNetwork != BlockChainIdentity.MainNet)
+            if (intendedNetwork != BlockChainIdentity.MainNet)
             {
                 networkFlag = $"--{intendedNetwork.Name}";
             }
@@ -31,8 +26,8 @@ namespace Paymetheus.Rpc
             var v4ListenAddress = RpcListenAddress("127.0.0.1", intendedNetwork);
 
             var processInfo = new ProcessStartInfo();
-            processInfo.FileName = "btcwallet";
-            processInfo.Arguments = $"{networkFlag} --noinitialload --experimentalrpclisten={v4ListenAddress} --onetimetlskey --datadir=\"{appDataDirectory}\"";
+            processInfo.FileName = "dcrwallet";
+            processInfo.Arguments = $"{networkFlag} --noinitialload --experimentalrpclisten={v4ListenAddress} --onetimetlskey --appdata=\"{appDataDirectory}\"";
             processInfo.UseShellExecute = false;
             processInfo.RedirectStandardError = true;
             processInfo.RedirectStandardOutput = true;
@@ -53,11 +48,11 @@ namespace Paymetheus.Rpc
 
             string port;
             if (intendedNetwork == BlockChainIdentity.MainNet)
-                port = "8332";
-            else if (intendedNetwork == BlockChainIdentity.TestNet3)
-                port = "18332";
+                port = "9110";
+            else if (intendedNetwork == BlockChainIdentity.TestNet)
+                port = "19110";
             else if (intendedNetwork == BlockChainIdentity.SimNet)
-                port = "18554";
+                port = "19557";
             else
                 throw new UnknownBlockChainException(intendedNetwork);
 
